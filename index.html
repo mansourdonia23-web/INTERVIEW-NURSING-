@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nursing Academy</title>
+<style>
+body{font-family:Arial;background:#eef4f8;margin:0;color:#183047}
+header{background:#07566b;color:white;text-align:center;padding:25px}
+main{max-width:850px;margin:20px auto;padding:12px}
+.card{background:white;padding:18px;border-radius:15px;margin:12px 0;box-shadow:0 3px 12px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+button{padding:13px;border:0;border-radius:10px;background:#087e8b;color:white;cursor:pointer;font-size:15px;margin:5px}
+.topic{background:#e4f5f7;color:#07566b;font-weight:bold;width:100%;min-height:75px}
+.option{display:block;width:100%;text-align:right;background:#f1f5f9;color:#183047;border:1px solid #ccd8df}
+.correct{background:#d5f8df!important;border:2px solid #159447}
+.wrong{background:#ffe0e0!important;border:2px solid #d22}
+.en{direction:ltr;text-align:left;color:#087e8b}
+#quiz,#result{display:none}
+#feedback{padding:12px;border-radius:10px;line-height:1.8}
+#bar{height:8px;background:#0b9c91;width:0}
+.progress{background:#ddd;border-radius:10px;overflow:hidden}
+.small{color:#687b89}
+</style>
+</head>
+<body>
+<header>
+<h1>🩺 Nursing Academy</h1>
+<p>أكاديمية التمريض | Nursing Questions & Exams</p>
+<p>تعلمي واختبري نفسك وكوني ممرضة محترفة</p>
+</header>
+<main>
+<section id="home" class="card">
+<h2>اختاري موضوع الاختبار</h2>
+<div class="grid" id="topics"></div>
+<button onclick="startAll()">اختبار شامل لكل المواضيع</button>
+</section>
+
+<section id="quiz" class="card">
+<h3 id="topicName"></h3>
+<p id="counter" class="small"></p>
+<div class="progress"><div id="bar"></div></div>
+<h3 id="question"></h3>
+<p id="english" class="en"></p>
+<div id="options"></div>
+<div id="feedback"></div>
+<button id="next" onclick="nextQ()" disabled>السؤال التالي</button>
+<button onclick="home()" style="background:#64748b">الرئيسية</button>
+</section>
+
+<section id="result" class="card">
+<h2>نتيجتك النهائية 🎉</h2>
+<h1 id="score"></h1>
+<p id="message"></p>
+<div id="review"></div>
+<button onclick="retry()">إعادة الاختبار</button>
+<button onclick="home()">العودة للأقسام</button>
+</section>
+</main>
+
+<script>
+const topics=[
+{name:"العناية المركزة ICU",icon:"🏥",questions:[
+["ما أول خطوة عند تقييم مريض فاقد الوعي؟","What is the first step when assessing an unconscious patient?",["تقييم مجرى الهواء والتنفس","إعطاء الطعام","قياس الوزن","تركه للنوم"],0,"ابدئي بتقييم ABC: مجرى الهواء والتنفس والدورة الدموية."],
+["ما المعدل الطبيعي لتشبع الأكسجين لمعظم البالغين؟","What is the usual oxygen saturation for most adults?",["70–80%","80–90%","95–100%","50–60%"],2,"غالبًا يكون 95–100%، وقد يختلف الهدف في بعض الحالات المرضية."],
+["ما العلامة الشائعة لصدمة نقص حجم الدم؟","Which is a common sign of hypovolemic shock?",["ارتفاع الضغط","انخفاض الضغط وتسارع النبض","زيادة البول","بطء النبض دائمًا"],1,"فقدان الدم أو السوائل قد يسبب انخفاض الضغط وتسارع النبض."],
+["لماذا نراقب إخراج البول في العناية؟","Why do we monitor urine output in ICU?",["تقييم وظائف الكلى والتروية","قياس الحرارة","تقييم السمع","قياس السكر"],0,"إخراج البول يساعد في تقييم تروية الكلى وحالة السوائل."]
+]},
+{name:"الطوارئ ER",icon:"🚑",questions:[
+["ما ترتيب التقييم الأولي في الطوارئ؟","What is the primary assessment sequence?",["ABCDE","FGHI","قياس الحرارة فقط","إعطاء الدواء أولًا"],0,"ABCDE: مجرى الهواء، التنفس، الدورة الدموية، الحالة العصبية، التعرض."],
+["مريض لديه ألم صدر شديد وتعرق. ما الإجراء المهم؟","A patient has severe chest pain and sweating. What is important?",["تأخير التقييم","تقييم عاجل وعمل ECG","إعطاؤه الطعام","جعله يمشي"],1,"ألم الصدر قد يشير إلى مشكلة قلبية طارئة ويحتاج تقييمًا عاجلًا."],
+["ما التصرف الأول مع نزيف خارجي شديد؟","What is the initial action for severe external bleeding?",["الضغط المباشر","تدليك الجرح","إعطاء ماء","الانتظار"],0,"استخدمي الضغط المباشر واطلبي المساعدة الطبية فورًا."],
+["مريض لا يستجيب ولا يتنفس طبيعيًا. ماذا تفعلين؟","An unresponsive patient is not breathing normally. What should you do?",["الانتظار","طلب المساعدة وبدء CPR حسب التدريب","إعطاء ماء","تركه وحده"],1,"اطلبي فريق الطوارئ وابدئي الإنعاش واستخدمي AED حسب التدريب."]
+]},
+{name:"مكافحة العدوى",icon:"🧤",questions:[
+["متى يجب تنظيف اليدين؟","When should hand hygiene be performed?",["قبل وبعد ملامسة المريض","مرة واحدة يوميًا","بعد الأكل فقط","عند الاتساخ فقط"],0,"نظافة اليدين مطلوبة في الأوقات الخمسة المعروفة."],
+["كيف نتخلص من الإبرة المستعملة؟","How should a used needle be disposed of?",["إعادة تغطيتها","كسرها","حاوية الأدوات الحادة","سلة عادية"],2,"تُرمى فورًا في حاوية الأدوات الحادة دون إعادة تغطيتها."],
+["ماذا تعني PPE؟","What does PPE mean?",["معدات الوقاية الشخصية","ملف المريض","مضاد حيوي","جهاز ضغط"],0,"تشمل القفازات والكمامة والرداء وواقي العين حسب الخطر."],
+["ماذا تفعلين بعد تعرض الجلد المجروح لدم مريض؟","What should you do after blood contacts broken skin?",["تجاهل الأمر","غسل المكان والإبلاغ واتباع بروتوكول التعرض","وضع عطر","تغطية المكان فقط"],1,"اغسلي المكان فورًا وأبلغي المسؤول واتبعي بروتوكول المنشأة."]
+]},
+{name:"رسم القلب ECG",icon:"❤️",questions:[
+["كم قطبًا يستخدم ECG ذو 12 اشتقاقًا؟","How many electrodes are used for a standard 12-lead ECG?",["4","6","10","12"],2,"يستخدم 10 أقطاب لإنتاج 12 اشتقاقًا."],
+["ماذا تمثل موجة P؟","What does the P wave represent?",["إزالة استقطاب الأذينين","إزالة استقطاب البطينين","التنفس","حركة الصمام"],0,"موجة P تمثل إزالة استقطاب الأذينين."],
+["ماذا يمثل مركب QRS؟","What does the QRS complex represent?",["إعادة استقطاب الأذينين","إزالة استقطاب البطينين","انقباض المعدة","التنفس"],1,"يمثل إزالة استقطاب البطينين."],
+["ما المعدل الطبيعي لنبض البالغ في الراحة؟","What is the normal resting heart rate in adults?",["20–40","40–50","60–100","120–160"],2,"المعدل المعتاد للبالغ في الراحة 60–100 نبضة بالدقيقة."]
+]},
+{name:"الأدوية وحساب الجرعات",icon:"💊",questions:[
+["الجرعة المطلوبة 500 mg والقرص 250 mg. كم قرصًا؟","Order 500 mg; each tablet is 250 mg. How many tablets?",["نصف","واحد","اثنان","ثلاثة"],2,"500 ÷ 250 = قرصان."],
+["ما أهم خطوة قبل إعطاء الدواء؟","What is an essential step before medication administration?",["التأكد من هوية المريض والحساسية والأمر","إعطاء الدواء مباشرة","الاعتماد على شكل العبوة","ترك الدواء بجانب المريض"],0,"راجعي هوية المريض والحساسية وأمر الدواء وحقوق إعطاء الدواء."],
+["1000 mL خلال 8 ساعات. ما المعدل بالساعة؟","1000 mL over 8 hours. What is the hourly rate?",["80 mL/hr","100 mL/hr","125 mL/hr","200 mL/hr"],2,"1000 ÷ 8 = 125 mL/hr. تحققي من الوصفة والإعدادات."],
+["ما وحدة قياس جرعة الدواء الشائعة؟","Which is a common medication dose unit?",["mg","km","cm","liter فقط"],0,"الملليجرام mg وحدة شائعة لقياس جرعات الأدوية."]
+]},
+{name:"أساسيات التمريض",icon:"🩹",questions:[
+["ما المعدل الطبيعي للتنفس عند البالغ؟","What is the normal adult respiratory rate?",["4–8","12–20","25–35","40–50"],1,"المعدل الطبيعي التقريبي 12–20 نفسًا في الدقيقة."],
+["أين نقيس النبض الكعبري؟","Where is the radial pulse measured?",["الرقبة","المعصم","القدم","الصدر"],1,"يقاس عند الرسغ من جهة الإبهام."],
+["لماذا نغير وضعية المريض طريح الفراش؟","Why do we reposition an immobile patient?",["منع قرح الضغط","زيادة الألم","منع النوم","رفع الحرارة"],0,"تغيير الوضعية وفحص الجلد يقللان خطر قرح الضغط."],
+["ما الوضع الذي قد يساعد مريض ضيق التنفس؟","Which position may help a patient with breathing difficulty?",["الاستلقاء المسطح","High Fowler's","الانبطاح دائمًا","ترندلينبورغ"],1,"وضعية High Fowler's قد تساعد على تمدد الرئتين حسب حالة المريض."]
+]},
+{name:"الأجهزة والإجراءات الطبية",icon:"🩺",questions:[
+["ما وظيفة Pulse Oximeter؟","What does a pulse oximeter measure?",["تشبع الأكسجين والنبض","ضغط الدم فقط","الحرارة فقط","سكر الدم"],0,"يقيس تشبع الأكسجين SpO2 ومعدل النبض."],
+["ما وظيفة جهاز Suction؟","What is the function of a suction device?",["شفط الإفرازات","قياس الضغط","قياس السكر","قياس الحرارة"],0,"يستخدم لشفط الإفرازات من مجرى الهواء أو الفم حسب الإجراء."],
+["ما وظيفة جهاز Infusion Pump؟","What is the function of an infusion pump?",["تنظيم معدل المحلول أو الدواء","قياس النبض","عمل ECG","قياس الحرارة"],0,"يساعد على إعطاء السوائل أو الأدوية بمعدل مضبوط."],
+["ما أهمية فحص ضغط الدم؟","Why do we measure blood pressure?",["تقييم حالة الدورة الدموية","قياس الأكسجين","قياس السكر","تقييم السمع"],0,"يساعد قياس الضغط في تقييم حالة الدورة الدموية."]
+]},
+{name:"مقابلات التوظيف",icon:"🎓",questions:[
+["ما أفضل إجابة لسؤال Tell me about yourself؟","What is a good response to Tell me about yourself?",["تعريف مختصر وخبراتك ومهاراتك","الحديث عن الآخرين","عدم الإجابة","ذكر معلومات غير صحيحة"],0,"قدمي تعريفًا مختصرًا عن نفسك وخبرتك ومهاراتك."],
+["ماذا تفعلين إذا ارتكبتِ خطأ تمريضيًا؟","What would you do if you made a nursing error?",["إخفاء الخطأ","الإبلاغ فورًا واتباع سياسة المنشأة","لوم المريض","تجاهل الأمر"],1,"سلامة المريض أولًا؛ أبلغي فورًا واتبعي سياسة الإبلاغ."],
+["ما معنى Teamwork؟","What does teamwork mean?",["العمل الجماعي","العمل منفردًا دائمًا","رفض المساعدة","تجاهل الزملاء"],0,"العمل الجماعي يعني التعاون والتواصل مع الفريق."],
+["كيف تتعاملين مع مريض غاضب؟","How do you deal with an angry patient?",["الجدال معه","الاستماع بهدوء والتعاطف ومحاولة حل المشكلة","تركه دون مساعدة","رفع الصوت"],1,"استمعي بهدوء، أظهري التعاطف، واطلبي الدعم عند الحاجة."]
+]}
+];
+
+let current=[],index=0,correct=0,answered=false,lastTopic=-1,wrongAnswers=[];
+
+const topicsBox=document.getElementById("topics");
+topics.forEach((t,i)=>{
+let b=document.createElement("button");
+b.className="topic";
+b.innerHTML=t.icon+"<br>"+t.name;
+b.onclick=()=>start(i);
+topicsBox.appendChild(b);
+});
+
+function start(i){
+lastTopic=i;
+current=topics[i].questions.map((q,j)=>({...{q},topic:topics[i].name}));
+begin(topics[i].name);
+}
+function startAll(){
+lastTopic=-1;
+current=[];
+topics.forEach(t=>t.questions.forEach(q=>current.push({q,topic:t.name})));
+begin("الاختبار الشامل");
+}
+function begin(name){
+index=0;correct=0;wrongAnswers=[];
+document.getElementById("home").style.display="none";
+document.getElementById("result").style.display="none";
+document.getElementById("quiz").style.display="block";
+document.getElementById("topicName").textContent=name;
+showQ();
+}
+function showQ(){
+answered=false;
+let item=current[index],q=item.q;
+document.getElementById("counter").textContent=`السؤال ${index+1} من ${current.length}`;
+document.getElementById("bar").style.width=(index/current.length*100)+"%";
+document.getElementById("question").textContent=q[0];
+document.getElementById("english").textContent=q[1];
+document.getElementById("feedback").textContent="";
+document.getElementById("feedback").className="";
+document.getElementById("next").disabled=true;
+document.getElementById("next").textContent=index===current.length-1?"عرض النتيجة":"السؤال التالي";
+let box=document.getElementById("options");box.innerHTML="";
+q[2].forEach((option,j)=>{
+let b=document.createElement("button");
+b.className="option";b.textContent=String.fromCharCode(65+j)+". "+option;
+b.onclick=()=>answer(j,b);
+box.appendChild(b);
+});
+}
+function answer(choice,btn){
+if(answered)return;
+answered=true;
+let q=current[index].q,ok=choice===q[3];
+if(ok)correct++;else wrongAnswers.push({question:q[0],chosen:q[2][choice],correct:q[2][q[3]],explain:q[4]});
+document.querySelectorAll(".option").forEach((b,j)=>{
+b.disabled=true;
+if(j===q[3])b.classList.add("correct");
+if(j===choice&&!ok)b.classList.add("wrong");
+});
+let f=document.getElementById("feedback");
+f.className=ok?"good":"wrong";
+f.innerHTML=(ok?"✅ إجابة صحيحة":"❌ إجابة غير صحيحة")+"<br><b>الشرح:</b> "+q[4];
+document.getElementById("next").disabled=false;
+}
+function nextQ(){
+if(!answered)return;
+index++;
+if(index<current.length)showQ();else result();
+}
+function result(){
+document.getElementById("quiz").style.display="none";
+document.getElementById("result").style.display="block";
+let percent=Math.round(correct/current.length*100);
+document.getElementById("score").textContent=`${correct} / ${current.length} — ${percent}%`;
+document.getElementById("message").textContent=percent>=90?"ممتاز جدًا! استمري في التعلم 🌟":percent>=70?"جيد جدًا، راجعي الأخطاء لتحسين مستواك 👏":"لا تقلقي، راجعي الشرح وأعيدي الاختبار 💪";
+let r=document.getElementById("review");r.innerHTML="";
+if(!wrongAnswers.length){r.innerHTML="<p>رائع! كل إجاباتك صحيحة.</p>";return;}
+wrongAnswers.forEach((w,i)=>{
+let d=document.createElement("div");d.className="card";
+d.innerHTML=`<b>${i+1}. ${w.question}</b><p>إجابتك: ${w.chosen}</p><p style="color:green">الصحيح: ${w.correct}</p><p>${w.explain}</p>`;
+r.appendChild(d);
+});
+}
+function retry(){
+if(lastTopic===-1)startAll();else start(lastTopic);
+}
+function home(){
+document.getElementById("quiz").style.display="none";
+document.getElementById("result").style.display="none";
+document.getElementById("home").style.display="block";
+}
+</script>
+</body>
+  </html>
+  <footer style="text-align:center;padding:20px;background:#07566b;color:white;margin-top:30px;">
+  جميع الحقوق محفوظة © 2026
+  <br>
+  <strong>تصميم وتطوير دنيا منصور</strong>
+  <br>
+  Donia Mansour
+  </footer>
